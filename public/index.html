@@ -9,16 +9,16 @@
 
 <body class="bg-light">
     <div class="container py-5">
-        <h1 class="mb-4 text-center">📝 备忘录管理</h1>
+        <h1 class="mb-4 text-center">📝 Memo</h1>
 
         <div class="row g-4">
             <!-- 新建备忘录 -->
             <div class="col-md-6">
                 <div class="card shadow-sm">
                     <div class="card-body">
-                        <h5 class="card-title">新建备忘录</h5>
-                        <input type="text" id="newContent" class="form-control mb-3" placeholder="请输入内容">
-                        <button onclick="createMemo()" class="btn btn-primary w-100">创建</button>
+                        <h5 class="card-title">New Memo</h5>
+                        <input type="text" id="newContent" class="form-control mb-3" placeholder="Enter your memo">
+                        <button onclick="createMemo()" class="btn btn-primary w-100">Create</button>
                     </div>
                 </div>
             </div>
@@ -27,9 +27,9 @@
             <div class="col-md-6">
                 <div class="card shadow-sm">
                     <div class="card-body">
-                        <h5 class="card-title">查找备忘录</h5>
-                        <input type="text" id="loadId" class="form-control mb-3" placeholder="请输入 ID">
-                        <button onclick="loadMemo()" class="btn btn-success w-100">加载</button>
+                        <h5 class="card-title">Read a Memo</h5>
+                        <input type="text" id="loadId" class="form-control mb-3" placeholder="Please enter ID">
+                        <button onclick="loadMemo()" class="btn btn-success w-100">Retrieve</button>
                     </div>
                 </div>
             </div>
@@ -37,9 +37,9 @@
 
         <!-- 操作结果显示 -->
         <div class="mt-4">
-            <h5>🔍 查询结果</h5>
+            <h5>🔍 Result</h5>
             <div id="resultBox" class="bg-white p-3 rounded shadow-sm" style="min-height: 120px;">
-                <label for="memoContent" class="form-label"><strong>备忘录内容：</strong></label>
+                <label for="memoContent" class="form-label"><strong>Memo Contents</strong></label>
                 <textarea id="memoContent" class="form-control" rows="4" disabled></textarea>
             </div>
         </div>
@@ -56,7 +56,7 @@
     <script>
         async function createMemo() {
             const content = document.getElementById('newContent').value.trim();
-            if (!content) return alert('内容不能为空');
+            if (!content) return alert('Content cannot be empty');
 
             const res = await fetch('/api/memos', {
                 method: 'POST',
@@ -68,12 +68,13 @@
             bindMemoToTextarea(data.id, data.content);
             document.getElementById('loadId').value = data.id;
             document.getElementById('newContent').value = '';
+            window.history.pushState(null, '', `/${data.id}`);
             loadAllMemos();
         }
 
         async function loadMemo() {
             const id = document.getElementById('loadId').value.trim();
-            if (!id) return alert('请输入 ID');
+            if (!id) return alert('Please enter an ID');
 
             const res = await fetch(`/api/memos/${id}`);
             const data = await res.json();
@@ -88,7 +89,7 @@
             if (!list) return;
 
             list.innerHTML = data.length === 0
-                ? '<li class="list-group-item text-muted">暂无备忘录</li>'
+                ? '<li class="list-group-item text-muted">Empty</li>'
                 : '';
 
             data.forEach(memo => {
@@ -96,14 +97,14 @@
                 li.className = 'list-group-item d-flex justify-content-between align-items-center';
                 li.innerHTML = `
                 <span><strong>ID:</strong> ${memo.id} — ${memo.content}</span>
-                <button class="btn btn-sm btn-danger" onclick="deleteMemo('${memo.id}')">删除</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteMemo('${memo.id}')">Delete</button>
             `;
                 list.appendChild(li);
             });
         }
 
         async function deleteMemo(id) {
-            if (!confirm(`确定删除 ID 为 ${id} 的备忘录吗？`)) return;
+            if (!confirm(`Are you sure to delete Memo ${id}?`)) return;
             await fetch(`/api/memos/${id}`, { method: 'DELETE' });
             loadAllMemos();
         }
