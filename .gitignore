@@ -61,3 +61,5 @@ local.env
 # 如果使用的是 ESLint、Prettier 的缓存
 .eslintcache
 .prettiercache
+
+data.json
