@@ -1,8 +1,33 @@
 const express = require('express');
 const router = express.Router();
 
+const fs = require('fs');
+const path = require('path');
+
+const DATA_PATH = path.join(__dirname, '..', 'data.json');
+
 let memos = []; // 内存中的假数据
 const usedIds = new Set();
+
+
+function saveMemosToFile() {
+    fs.writeFileSync(DATA_PATH, JSON.stringify(memos, null, 2), 'utf-8');
+}
+
+function loadMemosFromFile() {
+    if (fs.existsSync(DATA_PATH)) {
+        const data = fs.readFileSync(DATA_PATH, 'utf-8');
+        try {
+            memos = JSON.parse(data);
+            memos.forEach(m => usedIds.add(m.id));
+        } catch (e) {
+            console.error('❌ JSON 解析失败:', e);
+        }
+    }
+}
+
+
+loadMemosFromFile();
 
 
 function generateReadableId() {
@@ -34,6 +59,7 @@ router.post('/', (req, res) => {
     const newMemo = { id: newId, content };
     memos.push(newMemo);
     usedIds.add(newId);
+    saveMemosToFile();
     res.status(201).json(newMemo);
 });
 
@@ -46,6 +72,15 @@ router.get('/:id', (req, res) => {
     if (id === 'DELETEALL') {
         memos = [];
         usedIds.clear();
+        // delete the json file
+        fs.unlink(DATA_PATH, (err) => {
+            if (err) {
+                console.error('❌ 删除文件失败:', err);
+            } else {
+                console.log('✅ 删除文件成功');
+            }
+        });
+        saveMemosToFile();
         return res.status(204).end();
     }
 
@@ -69,6 +104,7 @@ router.put('/:id', (req, res) => {
     if (!memo) return res.status(404).json({ error: 'Not found' });
     memo.content = content;
     res.json(memo);
+    saveMemosToFile();
 });
 
 
@@ -79,6 +115,7 @@ router.delete('/:id', (req, res) => {
         if (m.id === id) usedIds.delete(id);
         return m.id !== id;
     });
+    saveMemosToFile();
     res.status(204).end();
 });
 
@@ -86,6 +123,7 @@ router.delete('/:id', (req, res) => {
 // router.delete('/', (req, res) => {
 //     memos = [];
 //     res.status(204).end();
+//     saveMemosToFile();
 // });
 
 module.exports = router;
