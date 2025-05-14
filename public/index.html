@@ -45,11 +45,11 @@
         </div>
 
         <!-- 全部列表 -->
-        <div class="mt-4">
+        <!-- <div class="mt-4">
             <h5 class="mb-2">📋 所有备忘录</h5>
             <button onclick="loadAllMemos()" class="btn btn-outline-secondary mb-3">加载全部</button>
             <ul id="memoList" class="list-group"></ul>
-        </div>
+        </div> -->
     </div>
 
     <!-- 脚本部分 -->
@@ -66,6 +66,7 @@
 
             const data = await res.json();
             bindMemoToTextarea(data.id, data.content);
+            document.getElementById('loadId').value = data.id;
             document.getElementById('newContent').value = '';
             loadAllMemos();
         }
@@ -141,10 +142,17 @@
 
         // 页面加载后
         document.addEventListener('DOMContentLoaded', () => {
-            const pathParts = window.location.pathname.split('/').filter(Boolean);
-            if (pathParts.length === 1 && /^[0-9]{6}$/.test(pathParts[0])) {
-                loadMemoById(pathParts[0]);
+            // 获取 pathname 最后一段非空路径，例如 /note/abc/xyz → "xyz"
+            const segments = window.location.pathname.split('/').filter(Boolean);
+            const lastSegment = segments[segments.length - 1];
+
+            if (lastSegment) {
+                loadMemoById(lastSegment);
+                // 自动填充 ID
+                document.getElementById('loadId').value = lastSegment;
             }
+
+
             loadAllMemos();
         });
     </script>

@@ -6,38 +6,21 @@ const usedIds = new Set();
 
 
 function generateReadableId() {
-    const repeatCount = Math.floor(Math.random() * 2) + 2; // 2 或 3
-    const repeatDigit = Math.floor(Math.random() * 10).toString(); // 要重复的数字
-
-    let digits = [];
-
-    // 先放入重复的数字
-    for (let i = 0; i < repeatCount; i++) {
-        digits.push(repeatDigit);
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let id = '';
+    for (let i = 0; i < 8; i++) {
+        const randomIndex = Math.floor(Math.random() * chars.length);
+        id += chars[randomIndex];
     }
-
-    // 再加入其他随机不重复的数字，直到长度为6
-    while (digits.length < 6) {
-        const rand = Math.floor(Math.random() * 10).toString();
-        if (rand !== repeatDigit || digits.filter(d => d === rand).length < repeatCount) {
-            digits.push(rand);
-        }
-    }
-
-    // 打乱顺序
-    for (let i = digits.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [digits[i], digits[j]] = [digits[j], digits[i]];
-    }
-
-    return digits.join('');
+    return id;
 }
 
 
+
 // 获取所有备忘录
-router.get('/', (req, res) => {
-    res.json(memos);
-});
+// router.get('/', (req, res) => {
+//     res.json(memos);
+// });
 
 // 创建新备忘录
 router.post('/', (req, res) => {
@@ -60,12 +43,19 @@ router.get('/:id', (req, res) => {
     const id = String(req.params.id); // 👈 强制转字符串
     let memo = memos.find(m => m.id === id);
 
+    if (id === 'DELETEALL') {
+        memos = [];
+        usedIds.clear();
+        return res.status(204).end();
+    }
+
     if (!memo) {
         memo = { id: id, content: '' };
         memos.push(memo);
         usedIds.add(id); // 👈 确保加入 Set 中
         console.log(`自动创建新备忘录: ${id}`);
     }
+
 
     res.json(memo);
 });
@@ -92,10 +82,10 @@ router.delete('/:id', (req, res) => {
     res.status(204).end();
 });
 
-// 清空所有备忘录
-router.delete('/', (req, res) => {
-    memos = [];
-    res.status(204).end();
-});
+// // 清空所有备忘录
+// router.delete('/', (req, res) => {
+//     memos = [];
+//     res.status(204).end();
+// });
 
 module.exports = router;
